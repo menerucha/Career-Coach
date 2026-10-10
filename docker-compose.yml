@@ -1,0 +1,20 @@
+# Runs the API + the built web app behind nginx.  Supabase is hosted (use your project's URL/keys in server/.env).
+#   cp server/.env.example server/.env   # fill in
+#   docker compose up --build            # open http://localhost:8080
+services:
+  server:
+    build: ./server
+    restart: unless-stopped
+    env_file: ./server/.env
+    environment:
+      PORT: "4000"
+      NODE_ENV: ${NODE_ENV:-development}      # use NODE_ENV=production for real deployments (then Clerk + Supabase are required)
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:8080}
+  client:
+    build:
+      context: ./client
+      args:
+        VITE_CLERK_PUBLISHABLE_KEY: ${VITE_CLERK_PUBLISHABLE_KEY:-}
+    restart: unless-stopped
+    depends_on: [server]
+    ports: ["8080:80"]
